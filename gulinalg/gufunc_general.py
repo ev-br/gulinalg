@@ -31,6 +31,8 @@ functions as gufuncs. The underlying implementation is BLAS based.
 """
 
 from __future__ import division, absolute_import, print_function
+
+import contextlib
 import multiprocessing
 
 import numpy as np
@@ -38,8 +40,8 @@ import numpy as np
 from . import _impl
 
 
-def _check_workers(workers):
-    """Check and set the number of gufunc worker threads."""
+@contextlib.contextmanager
+def _setup_gulinalg_threads(workers):
     if workers == -1:
         workers = multiprocessing.cpu_count()
     elif workers < 1 or workers % 1 != 0:
@@ -48,7 +50,12 @@ def _check_workers(workers):
     orig_workers = _impl.get_gufunc_threads()
     if workers != orig_workers:
         _impl.set_gufunc_threads(workers)
-    return workers, orig_workers
+
+    try:
+        yield workers
+    finally:
+        if workers != orig_workers:
+            _impl.set_gufunc_threads(orig_workers)
 
 
 def inner1d(a, b, workers=1, **kwargs):
@@ -99,13 +106,8 @@ def inner1d(a, b, workers=1, **kwargs):
     [ 7. 43.]
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
-        out =  _impl.inner1d(a, b, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
+    with _setup_gulinalg_threads(workers):
+        out = _impl.inner1d(a, b, **kwargs)
     return out
 
 
@@ -158,13 +160,8 @@ def dotc1d(a, b, workers=1, **kwargs):
     [ 7. 43.]
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
-        out =  _impl.dotc1d(a, b, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
+    with _setup_gulinalg_threads(workers):
+        out = _impl.dotc1d(a, b, **kwargs)
     return out
 
 
@@ -211,13 +208,8 @@ def innerwt(a, b, c, workers=1, **kwargs):
     array([ 3.25, 39.25])
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
-        out =  _impl.innerwt(a, b, c, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
+    with _setup_gulinalg_threads(workers):
+        out = _impl.innerwt(a, b, c, **kwargs)
     return out
 
 
@@ -265,13 +257,8 @@ def matrix_multiply(a, b, workers=1, **kwargs):
             [1030., 1088., 1146.]]])
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
-        out =  _impl.matrix_multiply(a, b, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
+    with _setup_gulinalg_threads(workers):
+        out = _impl.matrix_multiply(a, b, **kwargs)
     return out
 
 
@@ -316,13 +303,8 @@ def matvec_multiply(a, b, workers=1, **kwargs):
            [278., 382.]])
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out =  _impl.matvec_multiply(a, b, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -376,13 +358,8 @@ def quadratic_form(u, Q, v, workers=1, **kwargs):
     12.0
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
-        out =  _impl.quadratic_form(u, Q, v, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
+    with _setup_gulinalg_threads(workers):
+        out = _impl.quadratic_form(u, Q, v, **kwargs)
     return out
 
 
@@ -440,14 +417,8 @@ def update_rank1(a, b, c, conjugate=True, workers=1, **kwargs):
     else:
         gufunc = _impl.update_rank1
 
-    workers, orig_workers = _check_workers(workers)
-
-    try:
-        out =  gufunc(a, b, c, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
+    with _setup_gulinalg_threads(workers):
+        out = gufunc(a, b, c, **kwargs)
     return out
 
 
@@ -562,18 +533,13 @@ def update_rankk(a, c=None, UPLO='U', transpose_type='T', sym_out=True,
                 else:
                     gufunc = _impl.update_rankk_down
 
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(a, c, **kwargs)
-        if c is None and not sym_out:
-            # Have to swap here because update_rankk_no_c* returns with the last
-            # two axes transposed for efficiency (due to BLAS Fortran order).
-            out = out.swapaxes(-1, -2)
-        if not out.flags.c_contiguous:
-            out = np.ascontiguousarray(out)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
-    return out
 
+    if c is None and not sym_out:
+        # Have to swap here because update_rankk_no_c* returns with the last
+        # two axes transposed for efficiency (due to BLAS Fortran order).
+        out = out.swapaxes(-1, -2)
+    if not out.flags.c_contiguous:
+        out = np.ascontiguousarray(out)
+    return out

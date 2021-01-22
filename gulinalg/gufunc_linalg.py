@@ -27,7 +27,7 @@ from __future__ import division, absolute_import, print_function
 
 import numpy as np
 from . import _impl
-from .gufunc_general import _check_workers, matrix_multiply
+from .gufunc_general import _setup_gulinalg_threads, matrix_multiply
 
 
 def det(a, workers=1, **kwargs):
@@ -76,13 +76,8 @@ def det(a, workers=1, **kwargs):
     True
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = _impl.det(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -157,13 +152,8 @@ def slogdet(a, workers=1, **kwargs):
     True
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = _impl.slogdet(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 def inv(a, workers=1, **kwargs):
@@ -211,13 +201,8 @@ def inv(a, workers=1, **kwargs):
     True
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = _impl.inv(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -293,13 +278,8 @@ def inv_triangular(a, UPLO='L', unit_diagonal=False, workers=1, **kwargs):
         else:
             gufunc = _impl.inv_lower_triangular_non_unit_diagonal
 
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -385,13 +365,8 @@ def cholesky(a, UPLO='L', workers=1, **kwargs):
     else:
         gufunc = _impl.cholesky_up
 
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -485,13 +460,8 @@ def eig(a, workers=1, **kwargs):
     True
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = _impl.eig(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -565,13 +535,8 @@ def eigvals(a, workers=1, **kwargs):
     array([-1.+0.j,  1.+0.j])
 
     """
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = _impl.eigvals(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -655,14 +620,8 @@ def eigh(A, UPLO='L', workers=1, **kwargs):
     else:
         gufunc = _impl.eigh_up
 
-    workers, orig_workers = _check_workers(workers)
-
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(A, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -731,14 +690,8 @@ def eigvalsh(A, UPLO='L', workers=1, **kwargs):
     else:
         gufunc = _impl.eigvalsh_up
 
-    workers, orig_workers = _check_workers(workers)
-
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(A, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -806,14 +759,8 @@ def solve(A, B, workers=1, **kwargs):
     else:
         gufunc = _impl.solve
 
-    workers, orig_workers = _check_workers(workers)
-
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(A, B, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -908,14 +855,8 @@ def lu(a, permute_l=False, workers=1, **kwargs):
         else:
             gufunc = _impl.lu_n
 
-    workers, orig_workers = _check_workers(workers)
-
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -988,14 +929,8 @@ def qr(a, economy=False, workers=1, **kwargs):
     else:
         gufunc = _impl.qr_m
 
-    workers, orig_workers = _check_workers(workers)
-
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(a, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -1154,8 +1089,6 @@ def chosolve(A, B, UPLO='L', workers=1, **kwargs):
     True
 
     """
-    workers, orig_workers = _check_workers(workers)
-
     if len(B.shape) == (len(A.shape) - 1):
         if 'L' == UPLO:
             gufunc = _impl.chosolve1_lo
@@ -1167,12 +1100,8 @@ def chosolve(A, B, UPLO='L', workers=1, **kwargs):
         else:
             gufunc = _impl.chosolve_up
 
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(A, B, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -1274,14 +1203,8 @@ def solve_triangular(A, B, UPLO='L', transpose_type='N', unit_diagonal=False,
     gufunc = getattr(_impl,
                      ext_method_prefix + UPLO + transpose_type + diagonal_type)
 
-    workers, orig_workers = _check_workers(workers)
-
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(A, B, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -1348,13 +1271,8 @@ def poinv(A, UPLO='L', workers=1, **kwargs):
     else:
         gufunc = _impl.poinv_up
 
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = gufunc(A, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out
 
 
@@ -1424,12 +1342,6 @@ def ldl(A, workers=1, **kwargs):
     .. [1] G. H. Golub and C. F. Van Loan, *Matrix Computations*, 4th Ed.
            Baltimore, MD, Johns Hopkins University Press, 2013, pg. 192
     """
-
-    workers, orig_workers = _check_workers(workers)
-    try:
+    with _setup_gulinalg_threads(workers):
         out = _impl.ldl(A, **kwargs)
-    finally:
-        # restore original number of workers
-        if workers != orig_workers:
-            _impl.set_gufunc_threads(orig_workers)
     return out

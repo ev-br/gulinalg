@@ -7417,6 +7417,11 @@ CONCAT(init, THIS_MODULE_NAME) (void)
     PyObject *d;
     PyObject *version, *strict_fp;
 
+    // Initialize 1 thread. Manipulate at runtime from Python using the
+    // _setup_gulinalg_threads context manager.
+    int nthreads_env = omp_get_num_threads();
+    omp_set_num_threads(1);
+
     init_constants();
 #if defined(IS_PY3K)
     m = PyModule_Create(&moduledef);
@@ -7446,6 +7451,9 @@ CONCAT(init, THIS_MODULE_NAME) (void)
         PyErr_SetString(PyExc_RuntimeError,
                         "cannot load " STR(THIS_MODULE_NAME) " module.");
     }
+
+    // restore value from prior to the module import
+    omp_set_num_threads(nthreads_env);
 
     return RETVAL;
 }
