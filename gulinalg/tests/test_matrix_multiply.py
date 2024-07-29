@@ -8,7 +8,7 @@ is rather complex.
 from __future__ import print_function
 from unittest import TestCase, skipIf, skip
 import numpy as np
-from numpy.testing import run_module_suite, assert_allclose
+from numpy.testing import assert_allclose
 from pkg_resources import parse_version
 import gulinalg
 
@@ -501,5 +501,3 @@ class TestMatvecNoCopy(TestCase):
         ref = np.dot(a,b)
         assert_allclose(res, ref)
 
-if __name__ == '__main__':
-    run_module_suite()
