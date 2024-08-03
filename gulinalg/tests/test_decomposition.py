@@ -5,7 +5,7 @@ Tests different implementations of decomposition functions.
 from __future__ import print_function
 from unittest import TestCase, skipIf
 import numpy as np
-from numpy.testing import run_module_suite, assert_allclose
+from numpy.testing import assert_allclose
 from pkg_resources import parse_version
 import gulinalg
 
@@ -688,7 +688,3 @@ class TestLDL(TestCase):
         for workers in [1, ]:  #  -1]:
             l, d = gulinalg.ldl(a, workers=workers)
             self._check_ldl(a, l, d)
-
-
-if __name__ == '__main__':
-    run_module_suite()
