@@ -2,7 +2,7 @@
 #   $ conda env create -f environment.yml  # `mamba` works too for this command
 #   $ conda activate scipy-dev
 #
-name: gulinalg2
+name: gulinalg
 channels:
   - conda-forge
 dependencies:
@@ -10,6 +10,6 @@ dependencies:
   - compilers
   #- numpy==1.26.4
   - numpy
-  #- openblas
+  - openblas
   - pkg-config
   - libblas=*=*openblas  # helps avoid pulling in MKL
