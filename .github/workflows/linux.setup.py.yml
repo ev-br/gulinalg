@@ -1,4 +1,4 @@
-name: Linux tests
+name: Linux tests setup.py
 
 on:
   push:
@@ -40,6 +40,7 @@ jobs:
       shell: bash -l {0}
       run: |
         conda activate gulinalg
+        pip install "numpy==1.26.4"
         mamba list
         # pip install gulinalg -e . -v   # fails to build, why?
         export PYTHONPATH=`pwd`
