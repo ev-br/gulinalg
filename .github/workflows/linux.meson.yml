@@ -1,4 +1,4 @@
-name: Linux tests
+name: Linux meson openblas32
 
 on:
   push:
