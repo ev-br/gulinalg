@@ -46,14 +46,14 @@ openblas_dep = declare_dependency(
 )
 
 
-# find numpy includes
+# find numpy includes & the npymath library
 inc_numpy = run_command(py3,
   ['-c', 'import os; os.chdir(".."); import numpy; print(numpy.get_include())'],
   check : true
 ).stdout().strip()
-
 inc_np = include_directories(inc_numpy)
 
-
+npymath_lib_path = inc_numpy / '..' / 'lib'
+npymath_lib = cc.find_library('npymath', dirs: npymath_lib_path)
 
 subdir('gulinalg')

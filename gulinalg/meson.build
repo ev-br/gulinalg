@@ -11,7 +11,7 @@ py3.extension_module('_impl',
   ],
 #  c_args: c_args_common,
   include_directories: [inc_np, 'src/'],
-  dependencies: [openblas_dep],
+  dependencies: [openblas_dep, npymath_lib],
   gnu_symbol_visibility: 'default',
   install: true,
   subdir: 'gulinalg',
@@ -29,4 +29,4 @@ py3.install_sources(
 )
 
 
-subdir('tests')   # FIXME
+subdir('tests')
