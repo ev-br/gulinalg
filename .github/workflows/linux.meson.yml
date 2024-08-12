@@ -1,0 +1,56 @@
+name: Linux tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test_meson:
+    name: build and run tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+    - uses: actions/checkout@v4.1.1
+      with:
+        submodules: recursive
+
+    - name: Setup Conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: gulinalg
+        use-only-tar-bz2: false
+        miniforge-variant: Mambaforge
+        miniforge-version: latest
+        use-mamba: true
+
+    - name: Update Conda Environment
+      run: mamba env update -n gulinalg -f environment.yml
+
+    - name: Build and test gulinalg
+      shell: bash -l {0}
+      run: |
+        conda activate gulinalg
+        pip install scipy-openblas32
+        mamba list
+
+        # pkg-config
+        python -c'import scipy_openblas32 as sc; print(sc.get_pkg_config())' > openblas.pc
+        export PKG_CONFIG_PATH=$PWD
+
+        # build
+        pip install .
+
+        # test
+        cd /tmp
+        python -c'import gulinalg as g; g.test(verbosity=2)'
+
