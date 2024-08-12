@@ -71,9 +71,9 @@ dbg_stack_trace()
  */
 
 #ifdef NO_APPEND_FORTRAN
-# define FNAME(x) x
+# define FNAME(x) scipy_##x
 #else
-# define FNAME(x) x##_
+# define FNAME(x) scipy_##x##_
 #endif
 
 typedef struct { float r, i; } f2c_complex;
