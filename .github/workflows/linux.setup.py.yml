@@ -40,7 +40,7 @@ jobs:
       shell: bash -l {0}
       run: |
         conda activate gulinalg
-        mamba install "numpy==1.26.4"
+        pip install "numpy==1.26.4"
         mamba list
         # pip install gulinalg -e . -v   # fails to build, why?
         export PYTHONPATH=`pwd`
