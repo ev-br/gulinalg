@@ -1,4 +1,4 @@
-name: Linux meson openblas32
+name: Linux meson openblas64
 
 on:
   push:
@@ -40,11 +40,11 @@ jobs:
       shell: bash -l {0}
       run: |
         conda activate gulinalg
-        pip install scipy-openblas32
+        pip install scipy-openblas64
         mamba list
 
         # pkg-config
-        python -c'import scipy_openblas32 as sc; print(sc.get_pkg_config())' > openblas.pc
+        python -c'import scipy_openblas64 as sc; print(sc.get_pkg_config())' > openblas.pc
         export PKG_CONFIG_PATH=$PWD
         echo "\n OpenBLAS PKG-CONFIG FILE\n"
         cat openblas.pc
