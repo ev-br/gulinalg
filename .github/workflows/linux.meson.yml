@@ -54,5 +54,6 @@ jobs:
 
         # test
         cd /tmp
+        python -c'import numpy; print(f"{numpy.__version__ = }")'
         python -c'import gulinalg as g; g.test(verbosity=2)'
 

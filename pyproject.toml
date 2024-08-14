@@ -15,6 +15,6 @@ maintainers = [
 ]
 description = "Linear algebra gufuncs"
 requires-python = ">=3.10"
-dependencies = ["numpy>=2,<3",
+dependencies = ["numpy==1.26.4",
                 "scipy_openblas64"
 ]
