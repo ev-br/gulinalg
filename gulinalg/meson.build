@@ -1,15 +1,26 @@
 # build the _impl extension
 
+if get_option('openmp') == 'gnu'
+  c_args = ['-fopenmp']
+  link_args = ['-lgomp']
+else
+  c_args = []
+  link_args = []
+endif
+
+
 gulinalg_sources = [
   src_file.process('src/gulinalg.c.src'),
 ]
+
 
 py3.extension_module('_impl',
   [
     gulinalg_sources,
     'src/conditional_omp.h',
   ],
-#  c_args: c_args_common,
+  c_args: c_args,
+  link_args: link_args,
   include_directories: [inc_np, 'src/'],
   dependencies: [openblas_dep, npymath_lib],
   gnu_symbol_visibility: 'default',
