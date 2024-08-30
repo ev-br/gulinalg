@@ -2,10 +2,11 @@
 #   $ conda env create -f environment.yml  # `mamba` works too for this command
 #   $ conda activate scipy-dev
 #
-name: gulinalg
+name: gulinalg_mkl
 channels:
   - conda-forge
 dependencies:
   - python==3.11
   - compilers
   - pkg-config
+  - mkl

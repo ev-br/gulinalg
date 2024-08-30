@@ -39,11 +39,25 @@ src_file = generator(src_file_cli,
   output : '@BASENAME@'
 )
 
-openblas = dependency('openblas', method: 'pkg-config', required: true)
-openblas_dep = declare_dependency(
-  dependencies: openblas,
-  compile_args: []
-)
+blas_name = get_option('blas')
+if blas_name == 'scipy-openblas64'
+  blas = dependency('openblas', method: 'pkg-config', required: false)
+else
+  if blas_name == 'mkl'
+    # MKL
+    blas = dependency('mkl', method: 'pkg-config', required: false)
+   endif
+endif
+
+if not blas.found()
+  error('BLAS/LAPACK not found')
+endif
+
+#openblas = dependency('openblas', method: 'pkg-config', required: true)
+#openblas_dep = declare_dependency(
+#  dependencies: openblas,
+#  compile_args: []
+#)
 
 
 # find numpy includes & the npymath library
