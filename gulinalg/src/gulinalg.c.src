@@ -11,7 +11,16 @@
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
 
-#include "cblas.h"
+/*
+ * Previously, we included cblas.h, if only to get the `blasint` typedef.
+ * The include is available from scipy-openblas64, but is not available from
+ * MKL---the latter only has mkl_cblas{_64}.h and including it does not just work.
+ * So we simply copy-paste the relevant typedef from openblas_config.h :
+ * since we always assume ILP64 on posix, the blas int is always `long long`.
+ */
+//#include "cblas.h"  // XXX
+typedef long long blasint;
+
 
 #include <stddef.h>
 #include <stdio.h>
@@ -72,10 +81,17 @@ dbg_stack_trace()
  *****************************************************************************
  */
 
+#define BLAS_FUNC_CONCAT(name,prefix) prefix ## name ## _64_
+#define BLAS_FUNC_EXPAND(name,prefix) BLAS_FUNC_CONCAT(name,prefix)
+
 #ifdef NO_APPEND_FORTRAN
-# define FNAME(x) scipy_##x
+# define FNAME(x) x
 #else
-# define FNAME(x) scipy_##x##_64_
+  #ifdef BLAS_SYMBOL_PREFIX
+    #define FNAME(x) BLAS_FUNC_EXPAND(x,BLAS_SYMBOL_PREFIX)
+  #else
+    #define FNAME(x) x##_64_
+  #endif
 #endif
 
 typedef struct { float r, i; } f2c_complex;
