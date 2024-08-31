@@ -39,8 +39,8 @@ jobs:
         echo "\n OpenBLAS PKG-CONFIG FILE\n"
         cat openblas.pc
 
-        # build
-        pip install .
+        # build with OpenMP
+        pip install .  --config-settings=setup-args="-Dopenmp=gnu"
 
         # test
         pip install numpy${{ matrix.numpy-version }}
