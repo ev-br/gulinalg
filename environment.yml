@@ -9,4 +9,4 @@ dependencies:
   - python==3.11
   - compilers
   - pkg-config
-  - mkl
+  #- mkl
