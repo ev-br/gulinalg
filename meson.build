@@ -50,7 +50,6 @@ else
       mkl_version_req = '>=2023.0'
       blas = dependency('mkl-dynamic-ilp64-seq',
         modules: ['cblas'] + blas_interface + mkl_opts,
-        #modules: blas_interface + mkl_opts,
         required: false,  # may be required, but we need to emit a custom error message
         version: mkl_version_req,
       )
@@ -60,12 +59,6 @@ endif
 if not blas.found()
   error('BLAS/LAPACK not found')
 endif
-
-#openblas = dependency('openblas', method: 'pkg-config', required: true)
-#openblas_dep = declare_dependency(
-#  dependencies: openblas,
-#  compile_args: []
-#)
 
 
 # find numpy includes & the npymath library
