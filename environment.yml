@@ -8,8 +8,4 @@ channels:
 dependencies:
   - python==3.11
   - compilers
-  #- numpy==1.26.4
-  #- numpy
-  #- openblas
   - pkg-config
-  #- libblas=*=*openblas  # helps avoid pulling in MKL

@@ -3,7 +3,7 @@ build-backend = "mesonpy"
 requires = [
     "meson-python>=0.16.0",
     "numpy",
-    "scipy_openblas32"
+    "scipy_openblas64"
 ]
 
 
@@ -15,6 +15,6 @@ maintainers = [
 ]
 description = "Linear algebra gufuncs"
 requires-python = ">=3.10"
-dependencies = ["numpy>=2,<3",
-                "scipy_openblas32"
+dependencies = ["numpy>1.22.0",
+                "scipy_openblas64"
 ]
