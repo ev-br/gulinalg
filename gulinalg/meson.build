@@ -1,11 +1,8 @@
 # build the _impl extension
 
 if get_option('openmp') == 'gnu'
-  c_args = ['-fopenmp']
-  link_args = ['-lgomp']
-else
-  c_args = []
-  link_args = []
+  c_args += ['-fopenmp']
+  link_args += ['-lgomp']
 endif
 
 

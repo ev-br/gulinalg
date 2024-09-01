@@ -39,6 +39,10 @@ src_file = generator(src_file_cli,
   output : '@BASENAME@'
 )
 
+# build/link args
+c_args = []
+link_args = []
+
 blas_name = get_option('blas')
 if blas_name == 'scipy-openblas64'
   blas = dependency('openblas', method: 'pkg-config', required: false)
@@ -53,6 +57,7 @@ else
         required: false,  # may be required, but we need to emit a custom error message
         version: mkl_version_req,
       )
+     c_args += ['-DUSE_MKL']
    endif
 endif
 
