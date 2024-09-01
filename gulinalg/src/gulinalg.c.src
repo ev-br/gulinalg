@@ -13,9 +13,11 @@
 
 #ifdef USE_MKL
   #include "mkl_cblas.h"
+  #define FMT "lld"
   typedef MKL_INT blasint;
 #else
   #include "cblas.h"
+  #define FMT "ld"
   //typedef long long blasint;  // is #included from OpenBLAS's cblas.h
 #endif
 
@@ -1728,9 +1730,9 @@ dump_gemm_params(const char* name, const GEMM_PARAMS_t* params)
 {
     TRACE_TXT("\n%s\n"
               "%14s: %18p\n" "%14s: %18p\n" "%14s: %18p\n"
-              "%14s: %18d\n" "%14s: %18d\n" "%14s: %18d\n"
-              "%14s: %18d\n" "%14s: %18d\n" "%14s: %18d\n"
-              "%14s: %18d\n" "%14s: %18d\n" "%14s: %18d\n"
+              "%14s: %18"FMT"\n" "%14s: %18"FMT"\n" "%14s: %18"FMT"\n"
+              "%14s: %18"FMT"\n" "%14s: %18"FMT"\n" "%14s: %18"FMT"\n"
+              "%14s: %18"FMT"\n" "%14s: %18"FMT"\n" "%14s: %18"FMT"\n"
               "%14s: %15c'%c'\n" "%14s: %15c'%c'\n"
               "%14s: %18s\n",
               name,
@@ -3962,7 +3964,7 @@ typedef struct getrf_params_struct
     fortran_int N;
     fortran_int LDA;
     fortran_int A_size_bytes;
-    fortran_int IPIV_size_bytes
+    fortran_int IPIV_size_bytes;
 } GETRF_PARAMS_t;
 
 static inline int
