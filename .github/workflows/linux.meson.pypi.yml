@@ -38,11 +38,12 @@ jobs:
         echo "\n OpenBLAS PKG-CONFIG FILE\n"
         cat openblas.pc
 
-        pip install .  --config-settings=setup-args="-Dopenmp=gnu" --config-settings=setup-args="-Dblas=scipy-openblas64" --no-build-isolation -v
+        pip install .  -Csetup-args="-Dopenmp=gnu" -Csetup-args="-Dblas=scipy-openblas64" --no-build-isolation -v
 
         # test
         pip install numpy${{ matrix.numpy-version }}
         cd /tmp
+        export OMP_NUM_THREADS=2
         python -c'import numpy; print(f"{numpy.__version__ = }")'
         python -c'import gulinalg as g; g.test(verbosity=2)'
 
