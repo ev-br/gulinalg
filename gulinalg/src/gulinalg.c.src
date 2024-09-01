@@ -1563,7 +1563,7 @@ static inline void
  */
 
 static inline void
-@dot@_inner1d(char **args, npy_intp *dimensions, npy_intp *steps)
+@dot@_inner1d(char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
     const size_t sot = sizeof(@typ@);
     INIT_OUTER_LOOP_3
@@ -1621,14 +1621,14 @@ static inline void
    #dotc=sdot,ddot,cdotc,zdotc#
  */
 static void
-@TYPE@_inner1d(char **args, npy_intp *dimensions, npy_intp *steps,
+@TYPE@_inner1d(char **args, const npy_intp *dimensions, const npy_intp *steps,
                void *NPY_UNUSED(func))
 {
     @dot@_inner1d(args, dimensions, steps);
 }
 
 static void
-@TYPE@_dotc1d(char **args, npy_intp *dimensions, npy_intp *steps,
+@TYPE@_dotc1d(char **args, const npy_intp *dimensions, const npy_intp *steps,
               void *NPY_UNUSED(func))
 {
     @dotc@_inner1d(args, dimensions, steps);
@@ -1652,8 +1652,8 @@ static void
 
 static void
 @TYPE@_innerwt(char **args,
-               npy_intp *dimensions,
-               npy_intp *steps,
+               const npy_intp *dimensions,
+               const npy_intp *steps,
                void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_4
@@ -1742,7 +1742,7 @@ typedef struct _matrix_desc {
 
 static inline void
 matrix_desc_init(matrix_desc *mtxd,
-                 npy_intp* steps,
+                 const npy_intp* steps,
                  size_t sot,
                  fortran_int rows,
                  fortran_int columns,
@@ -1826,7 +1826,7 @@ init_gemm_params(GEMM_PARAMS_t *params,
                  fortran_int m,
                  fortran_int k,
                  fortran_int n,
-                 npy_intp* steps,
+                 const npy_intp* steps,
                  size_t sot,
                  int omp_threads)
 {
@@ -1916,8 +1916,8 @@ release_gemm_params(GEMM_PARAMS_t * params)
 
 static void
 @TYPE@_matrix_multiply(char **args,
-                       npy_intp *dimensions,
-                       npy_intp *steps,
+                       const npy_intp *dimensions,
+                       const npy_intp *steps,
                        void *NPY_UNUSED(func))
 {
     /*
@@ -2036,7 +2036,7 @@ static inline int
 init_gemv_params(GEMV_PARAMS_t *params,
                  fortran_int m,
                  fortran_int n,
-                 npy_intp* steps,
+                 const npy_intp* steps,
                  size_t sot,
                  fortran_int omp_threads)
 {
@@ -2101,8 +2101,8 @@ release_gemv_params(GEMV_PARAMS_t * params)
 
 static void
 @TYPE@_matvec_multiply(char **args,
-                       npy_intp *dimensions,
-                       npy_intp *steps,
+                       const npy_intp *dimensions,
+                       const npy_intp *steps,
                        void *NPY_UNUSED(func))
 {
     GEMV_PARAMS_t params;
@@ -2202,7 +2202,7 @@ static inline int
 init_ger_params(GER_PARAMS_t *params,
                 fortran_int m,
                 fortran_int n,
-                npy_intp* steps,
+                const npy_intp* steps,
                 size_t sot,
                 fortran_int omp_threads)
 {
@@ -2241,8 +2241,8 @@ release_ger_params(GER_PARAMS_t * params)
 static void
 @TYPE@_update_rank1_common(int conjugate,
                            char **args,
-                           npy_intp *dimensions,
-                           npy_intp *steps)
+                           const npy_intp *dimensions,
+                           const npy_intp *steps)
 {
     /*
      * For complex numbers, if conjugate is true, invoke _gerc function
@@ -2316,15 +2316,15 @@ static void
 }
 
 static void
-@TYPE@_update_rank1_conjugate(char     **args, npy_intp *dimensions,
-                              npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rank1_conjugate(char     **args, const npy_intp *dimensions,
+                              const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rank1_common(1, args, dimensions, steps);
 }
 
 static void
-@TYPE@_update_rank1(char     **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rank1(char     **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rank1_common(0, args, dimensions, steps);
 }
@@ -2352,7 +2352,7 @@ static inline int
 init_syrk_params(SYRK_PARAMS_t *params,
                  fortran_int n,
                  fortran_int k,
-                 npy_intp* steps,
+                 const npy_intp* steps,
                  size_t sot,
                  int omp_threads,
                  int no_C)
@@ -2439,8 +2439,8 @@ release_syrk_params(SYRK_PARAMS_t * params)
 static void
 @TYPE@_update_rankk_common(char uplo,
                            char **args,
-                           npy_intp *dimensions,
-                           npy_intp *steps,
+                           const npy_intp *dimensions,
+                           const npy_intp *steps,
                            int symmetric)
 {
     SYRK_PARAMS_t params;
@@ -2534,29 +2534,29 @@ static void
 }
 
 static void
-@TYPE@_update_rankk_down(char **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rankk_down(char **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rankk_common('L', args, dimensions, steps, 0);
 }
 
 static void
-@TYPE@_update_rankk_up(char **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rankk_up(char **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rankk_common('U', args, dimensions, steps, 0);
 }
 
 static void
-@TYPE@_update_rankk_down_sym(char **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rankk_down_sym(char **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rankk_common('L', args, dimensions, steps, 1);
 }
 
 static void
-@TYPE@_update_rankk_up_sym(char **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rankk_up_sym(char **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rankk_common('U', args, dimensions, steps, 1);
 }
@@ -2568,8 +2568,8 @@ static void
 static void
 @TYPE@_update_rankk_no_c_common(char uplo,
                                 char **args,
-                                npy_intp *dimensions,
-                                npy_intp *steps,
+                                const npy_intp *dimensions,
+                                const npy_intp *steps,
                                 int symmetric)
 {
     SYRK_PARAMS_t params;
@@ -2660,29 +2660,29 @@ static void
 }
 
 static void
-@TYPE@_update_rankk_no_c_down(char **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rankk_no_c_down(char **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rankk_no_c_common('L', args, dimensions, steps, 0);
 }
 
 static void
-@TYPE@_update_rankk_no_c_up(char **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rankk_no_c_up(char **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rankk_no_c_common('U', args, dimensions, steps, 0);
 }
 
 static void
-@TYPE@_update_rankk_no_c_down_sym(char **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rankk_no_c_down_sym(char **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rankk_no_c_common('L', args, dimensions, steps, 1);
 }
 
 static void
-@TYPE@_update_rankk_no_c_up_sym(char **args, npy_intp *dimensions,
-                    npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_update_rankk_no_c_up_sym(char **args, const npy_intp *dimensions,
+                    const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_update_rankk_no_c_common('U', args, dimensions, steps, 1);
 }
@@ -2850,8 +2850,8 @@ static inline void
 
 static void
 @TYPE@_slogdet(char **args,
-               npy_intp *dimensions,
-               npy_intp *steps,
+               const npy_intp *dimensions,
+               const npy_intp *steps,
                void *NPY_UNUSED(func))
 {
     fortran_int m;
@@ -2905,8 +2905,8 @@ static void
 
 static void
 @TYPE@_det(char **args,
-           npy_intp *dimensions,
-           npy_intp *steps,
+           const npy_intp *dimensions,
+           const npy_intp *steps,
            void *NPY_UNUSED(func))
 {
     fortran_int m;
@@ -3212,8 +3212,8 @@ static inline void
 @TYPE@_eigh_wrapper(char JOBZ,
                     char UPLO,
                     char**args,
-                    npy_intp* dimensions,
-                    npy_intp* steps)
+                    const npy_intp* dimensions,
+                    const npy_intp* steps)
 {
     ptrdiff_t outer_steps[3];
     size_t iter;
@@ -3304,8 +3304,8 @@ static inline void
  */
 static void
 @TYPE@_eighlo(char **args,
-              npy_intp *dimensions,
-              npy_intp *steps,
+              const npy_intp *dimensions,
+              const npy_intp *steps,
               void *NPY_UNUSED(func))
 {
     @TYPE@_eigh_wrapper('V', 'L', args, dimensions, steps);
@@ -3313,8 +3313,8 @@ static void
 
 static void
 @TYPE@_eighup(char **args,
-              npy_intp *dimensions,
-              npy_intp *steps,
+              const npy_intp *dimensions,
+              const npy_intp *steps,
               void* NPY_UNUSED(func))
 {
     @TYPE@_eigh_wrapper('V', 'U', args, dimensions, steps);
@@ -3322,8 +3322,8 @@ static void
 
 static void
 @TYPE@_eigvalshlo(char **args,
-                  npy_intp *dimensions,
-                  npy_intp *steps,
+                  const npy_intp *dimensions,
+                  const npy_intp *steps,
                   void* NPY_UNUSED(func))
 {
     @TYPE@_eigh_wrapper('N', 'L', args, dimensions, steps);
@@ -3331,8 +3331,8 @@ static void
 
 static void
 @TYPE@_eigvalshup(char **args,
-                  npy_intp *dimensions,
-                  npy_intp *steps,
+                  const npy_intp *dimensions,
+                  const npy_intp *steps,
                   void* NPY_UNUSED(func))
 {
     @TYPE@_eigh_wrapper('N', 'U', args, dimensions, steps);
@@ -3425,7 +3425,7 @@ call_@lapack_func@(GESV_PARAMS_t *params, void *A, void *B, fortran_int *IPIV)
 }
 
 static void
-@TYPE@_solve(char **args, npy_intp *dimensions, npy_intp *steps,
+@TYPE@_solve(char **args, const npy_intp *dimensions, const npy_intp *steps,
              void *NPY_UNUSED(func))
 {
     GESV_PARAMS_t params;
@@ -3476,7 +3476,7 @@ static void
 }
 
 static void
-@TYPE@_solve1(char **args, npy_intp *dimensions, npy_intp *steps,
+@TYPE@_solve1(char **args, const npy_intp *dimensions, const npy_intp *steps,
               void *NPY_UNUSED(func))
 {
     GESV_PARAMS_t params;
@@ -3524,7 +3524,7 @@ static void
 }
 
 static void
-@TYPE@_inv(char **args, npy_intp *dimensions, npy_intp *steps,
+@TYPE@_inv(char **args, const npy_intp *dimensions, const npy_intp *steps,
            void *NPY_UNUSED(func))
 {
     GESV_PARAMS_t params;
@@ -3641,7 +3641,7 @@ call_@lapack_func@(POTR_PARAMS_t *params, void *A)
 }
 
 static void
-@TYPE@_cholesky(char uplo, char **args, npy_intp *dimensions, npy_intp *steps)
+@TYPE@_cholesky(char uplo, char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
     POTR_PARAMS_t params;
     int error_occurred = get_fp_invalid_and_clear();
@@ -3686,14 +3686,14 @@ static void
 }
 
 static void
-@TYPE@_cholesky_up(char **args, npy_intp *dimensions, npy_intp *steps,
+@TYPE@_cholesky_up(char **args, const npy_intp *dimensions, const npy_intp *steps,
                 void *NPY_UNUSED(func))
 {
     @TYPE@_cholesky('U', args, dimensions, steps);
 }
 
 static void
-@TYPE@_cholesky_lo(char **args, npy_intp *dimensions, npy_intp *steps,
+@TYPE@_cholesky_lo(char **args, const npy_intp *dimensions, const npy_intp *steps,
                 void *NPY_UNUSED(func))
 {
     @TYPE@_cholesky('L', args, dimensions, steps);
@@ -3838,7 +3838,7 @@ call_@lapack_func@(SYTR_PARAMS_t *params, void* A, void* WORK, fortran_int* IPIV
 
 
 static void
-@TYPE@_ldl(char **args, npy_intp *dimensions, npy_intp *steps)
+@TYPE@_ldl(char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
     SYTR_PARAMS_t params;
     int error_occurred = get_fp_invalid_and_clear();
@@ -3929,7 +3929,7 @@ static void
 }
 
 static void
-@TYPE@_ldl_entry(char **args, npy_intp *dimensions, npy_intp *steps,
+@TYPE@_ldl_entry(char **args, const npy_intp *dimensions, const npy_intp *steps,
               void *NPY_UNUSED(func))
 {
     @TYPE@_ldl(args, dimensions, steps);
@@ -3954,7 +3954,7 @@ typedef struct getrf_params_struct
 
 static inline int
 init_getrf_func(GETRF_PARAMS_t *params, fortran_int M, fortran_int N,
-                 npy_intp *steps, size_t sot, fortran_int omp_threads)
+                 const npy_intp *steps, size_t sot, fortran_int omp_threads)
 {
     const size_t a_size1 = M * N * sot;
     const size_t a_size = a_size1 * omp_threads;
@@ -3999,7 +3999,7 @@ release_getrf_func(GETRF_PARAMS_t *params)
 */
 
 static void
-@TYPE@_lu_common(int permute, char **args, npy_intp *dimensions, npy_intp *steps)
+@TYPE@_lu_common(int permute, char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
     /*
      * If permute is False(0), decompose matrix into Permutation matrix,
@@ -4215,15 +4215,15 @@ static void
 }
 
 static void
-@TYPE@_lu(char     **args, npy_intp *dimensions,
-          npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_lu(char     **args, const npy_intp *dimensions,
+          const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_lu_common(0, args, dimensions, steps);
 }
 
 static void
-@TYPE@_lu_permute(char     **args, npy_intp *dimensions,
-                  npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_lu_permute(char     **args, const npy_intp *dimensions,
+                  const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_lu_common(1, args, dimensions, steps);
 }
@@ -4316,7 +4316,7 @@ release_@lapack_func@(GEQRF_PARAMS_t *params)
 }
 
 static void
-@TYPE@_qr(int enforce_m, char **args, npy_intp *dimensions, npy_intp *steps)
+@TYPE@_qr(int enforce_m, char **args, const npy_intp *dimensions, const npy_intp *steps)
 {
     GEQRF_PARAMS_t params;
     int error_occurred = get_fp_invalid_and_clear();
@@ -4478,15 +4478,15 @@ static void
 }
 
 static void
-@TYPE@_qr_m(char     **args, npy_intp *dimensions,
-            npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_qr_m(char     **args, const npy_intp *dimensions,
+            const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_qr(1, args, dimensions, steps);
 }
 
 static void
-@TYPE@_qr_n(char     **args, npy_intp *dimensions,
-            npy_intp *steps, void *NPY_UNUSED(func))
+@TYPE@_qr_n(char     **args, const npy_intp *dimensions,
+            const npy_intp *steps, void *NPY_UNUSED(func))
 {
     @TYPE@_qr(0, args, dimensions, steps);
 }
@@ -4916,8 +4916,8 @@ static inline void
 @TYPE@_eig_wrapper(char JOBVL,
                    char JOBVR,
                    char**args,
-                   npy_intp* dimensions,
-                   npy_intp* steps)
+                   const npy_intp* dimensions,
+                   const npy_intp* steps)
 {
     ptrdiff_t outer_steps[4];
     size_t iter;
@@ -5035,8 +5035,8 @@ static inline void
 
 static void
 @TYPE@_eig(char **args,
-           npy_intp *dimensions,
-           npy_intp *steps,
+           const npy_intp *dimensions,
+           const npy_intp *steps,
            void *NPY_UNUSED(func))
 {
     @TYPE@_eig_wrapper('N', 'V', args, dimensions, steps);
@@ -5044,8 +5044,8 @@ static void
 
 static void
 @TYPE@_eigvals(char **args,
-               npy_intp *dimensions,
-               npy_intp *steps,
+               const npy_intp *dimensions,
+               const npy_intp *steps,
                void *NPY_UNUSED(func))
 {
     @TYPE@_eig_wrapper('N', 'N', args, dimensions, steps);
@@ -5393,8 +5393,8 @@ release_@lapack_func@(GESDD_PARAMS_t* params)
 static inline void
 @TYPE@_svd_wrapper(char JOBZ,
                    char **args,
-                   npy_intp* dimensions,
-                   npy_intp* steps)
+                   const npy_intp* dimensions,
+                   const npy_intp* steps)
 {
     ptrdiff_t outer_steps[4];
     int error_occurred = get_fp_invalid_and_clear();
@@ -5480,8 +5480,8 @@ static inline void
  */
 static void
 @TYPE@_svd_N(char **args,
-             npy_intp *dimensions,
-             npy_intp *steps,
+             const npy_intp *dimensions,
+             const npy_intp *steps,
              void *NPY_UNUSED(func))
 {
     @TYPE@_svd_wrapper('N', args, dimensions, steps);
@@ -5489,8 +5489,8 @@ static void
 
 static void
 @TYPE@_svd_S(char **args,
-             npy_intp *dimensions,
-             npy_intp *steps,
+             const npy_intp *dimensions,
+             const npy_intp *steps,
              void *NPY_UNUSED(func))
 {
     @TYPE@_svd_wrapper('S', args, dimensions, steps);
@@ -5498,8 +5498,8 @@ static void
 
 static void
 @TYPE@_svd_A(char **args,
-             npy_intp *dimensions,
-             npy_intp *steps,
+             const npy_intp *dimensions,
+             const npy_intp *steps,
              void *NPY_UNUSED(func))
 {
     @TYPE@_svd_wrapper('A', args, dimensions, steps);
@@ -5517,8 +5517,8 @@ static void
 
 static void
 @TYPE@_add3(char **args,
-            npy_intp *dimensions,
-            npy_intp* steps,
+            const npy_intp *dimensions,
+            const npy_intp* steps,
             void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_4
@@ -5535,8 +5535,8 @@ static void
 
 static void
 @TYPE@_multiply3(char **args,
-                 npy_intp *dimensions,
-                 npy_intp* steps,
+                 const npy_intp *dimensions,
+                 const npy_intp* steps,
                  void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_4
@@ -5553,8 +5553,8 @@ static void
 
 static void
 @TYPE@_multiply3_add(char **args,
-                     npy_intp *dimensions,
-                     npy_intp* steps,
+                     const npy_intp *dimensions,
+                     const npy_intp* steps,
                      void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_5
@@ -5574,8 +5574,8 @@ static void
 
 static void
 @TYPE@_multiply_add(char **args,
-                    npy_intp *dimensions,
-                    npy_intp* steps,
+                    const npy_intp *dimensions,
+                    const npy_intp* steps,
                     void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_4
@@ -5592,8 +5592,8 @@ static void
 
 static void
 @TYPE@_multiply_add2(char **args,
-                     npy_intp *dimensions,
-                     npy_intp* steps,
+                     const npy_intp *dimensions,
+                     const npy_intp* steps,
                      void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_5
@@ -5612,8 +5612,8 @@ static void
 
 static void
 @TYPE@_multiply4(char **args,
-                 npy_intp *dimensions,
-                 npy_intp* steps,
+                 const npy_intp *dimensions,
+                 const npy_intp* steps,
                  void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_5
@@ -5632,8 +5632,8 @@ static void
 
 static void
 @TYPE@_multiply4_add(char **args,
-                     npy_intp *dimensions,
-                     npy_intp* steps,
+                     const npy_intp *dimensions,
+                     const npy_intp* steps,
                      void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_6
@@ -5738,8 +5738,8 @@ static inline @typ@
 /* uQv, where u and v are vectors and Q is a matrix */
 static void
 @TYPE@_quadratic_form(char **args,
-                      npy_intp *dimensions,
-                      npy_intp* steps,
+                      const npy_intp *dimensions,
+                      const npy_intp* steps,
                       void *NPY_UNUSED(func))
 {
     INIT_OUTER_LOOP_4
@@ -5911,8 +5911,8 @@ call_@lapack_func@(POTRS_PARAMS_t *params, void *A, void *B)
 static void
 @TYPE@_chosolve(char uplo, char ndim,
                 char **args,
-                npy_intp *dimensions,
-                npy_intp* steps
+                const npy_intp *dimensions,
+                const npy_intp* steps
                 )
 {
     POTRS_PARAMS_t params;
@@ -5967,8 +5967,8 @@ static void
 
 static void
 @TYPE@_chosolve_up(char **args,
-                   npy_intp *dimensions,
-                   npy_intp* steps,
+                   const npy_intp *dimensions,
+                   const npy_intp* steps,
                    void *NPY_UNUSED(func))
 {
     @TYPE@_chosolve('U', 1, args, dimensions, steps);
@@ -5976,8 +5976,8 @@ static void
 
 static void
 @TYPE@_chosolve_lo(char **args,
-                   npy_intp *dimensions,
-                   npy_intp* steps,
+                   const npy_intp *dimensions,
+                   const npy_intp* steps,
                    void *NPY_UNUSED(func))
 {
     @TYPE@_chosolve('L', 1, args, dimensions, steps);
@@ -5985,8 +5985,8 @@ static void
 
 static void
 @TYPE@_chosolve1_up(char **args,
-                    npy_intp *dimensions,
-                    npy_intp* steps,
+                    const npy_intp *dimensions,
+                    const npy_intp* steps,
                     void *NPY_UNUSED(func))
 {
     @TYPE@_chosolve('U', 0, args, dimensions, steps);
@@ -5994,8 +5994,8 @@ static void
 
 static void
 @TYPE@_chosolve1_lo(char **args,
-                    npy_intp *dimensions,
-                    npy_intp* steps,
+                    const npy_intp *dimensions,
+                    const npy_intp* steps,
                     void *NPY_UNUSED(func))
 {
     @TYPE@_chosolve('L', 0, args, dimensions, steps);
@@ -6047,8 +6047,8 @@ static inline void release_@lapack_func@(TRTRI_PARAMS_t *params)
 static inline void @TYPE@_inv_triangular(char uplo,
                                          char diag,
                                          char **args,
-                                         npy_intp *dimensions,
-                                         npy_intp *steps)
+                                         const npy_intp *dimensions,
+                                         const npy_intp *steps)
 {
     TRTRI_PARAMS_t params;
     int error_occurred = get_fp_invalid_and_clear();
@@ -6099,8 +6099,8 @@ static inline void @TYPE@_inv_triangular(char uplo,
 
 static void
 @TYPE@_inv_lower_triangular_non_unit_diagonal(char **args,
-                                              npy_intp *dimensions,
-                                              npy_intp *steps,
+                                              const npy_intp *dimensions,
+                                              const npy_intp *steps,
                                               void *NPY_UNUSED(func))
 {
     @TYPE@_inv_triangular('L', 'N', args, dimensions, steps);
@@ -6108,8 +6108,8 @@ static void
 
 static void
 @TYPE@_inv_lower_triangular_unit_diagonal(char **args,
-                                          npy_intp *dimensions,
-                                          npy_intp *steps,
+                                          const npy_intp *dimensions,
+                                          const npy_intp *steps,
                                           void *NPY_UNUSED(func))
 {
     @TYPE@_inv_triangular('L', 'U', args, dimensions, steps);
@@ -6117,8 +6117,8 @@ static void
 
 static void
 @TYPE@_inv_upper_triangular_non_unit_diagonal(char **args,
-                                              npy_intp *dimensions,
-                                              npy_intp *steps,
+                                              const npy_intp *dimensions,
+                                              const npy_intp *steps,
                                               void *NPY_UNUSED(func))
 {
     @TYPE@_inv_triangular('U', 'N', args, dimensions, steps);
@@ -6126,8 +6126,8 @@ static void
 
 static void
 @TYPE@_inv_upper_triangular_unit_diagonal(char **args,
-                                          npy_intp *dimensions,
-                                          npy_intp *steps,
+                                          const npy_intp *dimensions,
+                                          const npy_intp *steps,
                                           void *NPY_UNUSED(func))
 {
     @TYPE@_inv_triangular('U', 'U', args, dimensions, steps);
@@ -6213,8 +6213,8 @@ release_@lapack_func@(TRTRS_PARAMS_t *params)
 static void
 @TYPE@_solve_triangular(char ndim, char uplo,
                         char trans, char diag,
-                        char **args, npy_intp *dimensions,
-                        npy_intp* steps)
+                        char **args, const npy_intp *dimensions,
+                        const npy_intp* steps)
 {
     TRTRS_PARAMS_t params;
     int error_occurred = get_fp_invalid_and_clear();
@@ -6278,8 +6278,8 @@ static void
 static void                                                      \
 @TYPE@_solve_triangular_ ## NDIM ## UPLO ## TRANS ##DIAG(        \
     char **args,                                                 \
-    npy_intp *dimensions,                                        \
-    npy_intp* steps,                                             \
+    const npy_intp *dimensions,                                        \
+    const npy_intp* steps,                                             \
     void *NPY_UNUSED(func))                                      \
 {                                                                \
     @TYPE@_solve_triangular(NDIM, (#UPLO)[0], (#TRANS)[0],       \
@@ -6396,8 +6396,8 @@ call_@potri@(POTRI_PARAMS_t *params, void* A)
 static inline void
 @TYPE@_poinv(char uplo,
              char **args,
-             npy_intp *dimensions,
-             npy_intp *steps)
+             const npy_intp *dimensions,
+             const npy_intp *steps)
 {
     POTRI_PARAMS_t params;
     int error_occurred = get_fp_invalid_and_clear();
@@ -6443,8 +6443,8 @@ static inline void
 
 static void
 @TYPE@_poinv_up(char **args,
-                npy_intp *dimensions,
-                npy_intp *steps,
+                const npy_intp *dimensions,
+                const npy_intp *steps,
                 void *NPY_UNUSED(func))
 {
     @TYPE@_poinv('U', args, dimensions, steps);
@@ -6452,8 +6452,8 @@ static void
 
 static void
 @TYPE@_poinv_lo(char **args,
-                npy_intp *dimensions,
-                npy_intp *steps,
+                const npy_intp *dimensions,
+                const npy_intp *steps,
                 void *NPY_UNUSED(func))
 {
     @TYPE@_poinv('L', args, dimensions, steps);
