@@ -655,7 +655,6 @@ class TestLDL(TestCase):
         matmul = gulinalg.matrix_multiply
         assert_allclose(matmul(l, matmul(d, np.conj(l).swapaxes(-2, -1))), a)
 
-    @skipIf(True, 'segfaults with openmp')
     def test_real(self):
         m = 10
         a = np.random.randn(m, m)
@@ -663,7 +662,6 @@ class TestLDL(TestCase):
         l, d = gulinalg.ldl(a)
         self._check_ldl(a, l, d)
 
-    @skipIf(True, 'segfaults with openmp')
     def test_complex(self):
         m = 10
         a = np.random.randn(m, m) + 1j * np.random.randn(m, m)
@@ -673,22 +671,20 @@ class TestLDL(TestCase):
 
     # TODO: fix workers > 1 case in MKL environments.
     #       segfault has been observed within mkl_blas_avx512_xdswap
-    @skipIf(True, 'segfaults with openmp')
     def test_real_vector(self):
         m = 10
         a = np.random.randn(n_batch, m, m)
         a = np.matmul(a, a.swapaxes(-2, -1))  # make symmetric
-        for workers in [1, ]:  # -1]:
+        for workers in [1, -1]:
             l, d = gulinalg.ldl(a, workers=workers)
             self._check_ldl(a, l, d)
 
     # TODO: fix workers > 1 case in MKL environments.
     #       segfault has been observed within mkl_blas_avx512_xdswap
-    @skipIf(True, 'segfaults with openmp')
     def test_complex_vector(self):
         m = 10
         a = np.random.randn(n_batch, m, m) + 1j * np.random.randn(n_batch, m, m)
         a = np.matmul(a, np.conj(a).swapaxes(-2, -1))  # make symmetric
-        for workers in [1, ]:  #  -1]:
+        for workers in [1, ]:  #  -1]:    # XXX https://github.com/Quansight/gulinalg/issues/12
             l, d = gulinalg.ldl(a, workers=workers)
             self._check_ldl(a, l, d)

@@ -1,11 +1,8 @@
 # build the _impl extension
 
 if get_option('openmp') == 'gnu'
-  c_args = ['-fopenmp']
-  link_args = ['-lgomp']
-else
-  c_args = []
-  link_args = []
+  c_args += ['-fopenmp']
+  link_args += ['-lgomp']
 endif
 
 
@@ -22,7 +19,7 @@ py3.extension_module('_impl',
   c_args: c_args,
   link_args: link_args,
   include_directories: [inc_np, 'src/'],
-  dependencies: [openblas_dep, npymath_lib],
+  dependencies: [blas, npymath_lib],
   gnu_symbol_visibility: 'default',
   install: true,
   subdir: 'gulinalg',

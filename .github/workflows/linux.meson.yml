@@ -1,4 +1,4 @@
-name: Linux conda openblas64
+name: Linux conda MKL
 
 on:
   push:
@@ -41,21 +41,15 @@ jobs:
       shell: bash -l {0}
       run: |
         conda activate gulinalg
-        pip install scipy-openblas64
+        pip install numpy meson meson-python ninja mkl mkl-devel
         mamba list
 
-        # pkg-config
-        python -c'import scipy_openblas64 as sc; print(sc.get_pkg_config())' > openblas.pc
-        export PKG_CONFIG_PATH=$PWD
-        echo "\n OpenBLAS PKG-CONFIG FILE\n"
-        cat openblas.pc
-
         # build
-        pip install .
+        pip install . --no-build-isolation -v  -Csetup-args="-Dopenmp=gnu" -Csetup-args="-Dblas=mkl"
 
         # test
         pip install numpy${{ matrix.numpy-version }}
         cd /tmp
         python -c'import numpy; print(f"{numpy.__version__ = }")'
-        python -c'import gulinalg as g; g.test(verbosity=2)'
+        OMP_NUM_THREADS=2 python -c'import gulinalg as g; g.test(verbosity=2)'
 

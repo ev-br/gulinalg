@@ -30,8 +30,7 @@ jobs:
     - name: Build and test gulinalg
       shell: bash -l {0}
       run: |
-        pip install scipy-openblas64
-        mamba list
+        pip install numpy meson meson-python ninja scipy-openblas64
 
         # pkg-config
         python -c'import scipy_openblas64 as sc; print(sc.get_pkg_config())' > openblas.pc
@@ -39,12 +38,12 @@ jobs:
         echo "\n OpenBLAS PKG-CONFIG FILE\n"
         cat openblas.pc
 
-        # build with OpenMP
-        pip install .  --config-settings=setup-args="-Dopenmp=gnu"
+        pip install .  -Csetup-args="-Dopenmp=gnu" -Csetup-args="-Dblas=scipy-openblas64" --no-build-isolation -v
 
         # test
         pip install numpy${{ matrix.numpy-version }}
         cd /tmp
+        export OMP_NUM_THREADS=2
         python -c'import numpy; print(f"{numpy.__version__ = }")'
         python -c'import gulinalg as g; g.test(verbosity=2)'
 

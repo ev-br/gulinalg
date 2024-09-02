@@ -1,7 +1,7 @@
 project(
   'gulinalg',
   'c',
-  version: '0.1',
+  version: '0.2',
   license: 'BSD-3',
   meson_version: '>= 1.5.0',
   default_options: [
@@ -39,11 +39,31 @@ src_file = generator(src_file_cli,
   output : '@BASENAME@'
 )
 
-openblas = dependency('openblas', method: 'pkg-config', required: true)
-openblas_dep = declare_dependency(
-  dependencies: openblas,
-  compile_args: []
-)
+# build/link args
+c_args = []
+link_args = []
+
+blas_name = get_option('blas')
+if blas_name == 'scipy-openblas64'
+  blas = dependency('openblas', method: 'pkg-config', required: false)
+else
+  if blas_name == 'mkl'
+    # MKL
+      blas_interface = ['interface: ilp64']
+      mkl_opts = ['threading: auto']
+      mkl_version_req = '>=2023.0'
+      blas = dependency('mkl-dynamic-ilp64-seq',
+        modules: ['cblas'] + blas_interface + mkl_opts,
+        required: false,  # may be required, but we need to emit a custom error message
+        version: mkl_version_req,
+      )
+     c_args += ['-DUSE_MKL']
+   endif
+endif
+
+if not blas.found()
+  error('BLAS/LAPACK not found')
+endif
 
 
 # find numpy includes & the npymath library

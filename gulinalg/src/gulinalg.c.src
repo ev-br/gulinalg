@@ -11,7 +11,15 @@
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
 
-#include "cblas.h"
+#ifdef USE_MKL
+  #include "mkl_cblas.h"
+  #define FMT "lld"
+  typedef MKL_INT blasint;
+#else
+  #include "cblas.h"
+  #define FMT "ld"
+  //typedef long long blasint;  // is #included from OpenBLAS's cblas.h
+#endif
 
 #include <stddef.h>
 #include <stdio.h>
@@ -27,11 +35,12 @@
 
 
 /*
+  0.2.0 use ILP64 BLAS/LAPACK
   0.1.6 added ldl
   0.1.5 added STRICT_FP to detect non-conformant rounding in x87
   0.1.4 started logging changes
  */
-static const char* _impl_version_string = "0.1.6";
+static const char* _impl_version_string = "0.2.0";
 
 /*
  ****************************************************************************
@@ -72,10 +81,17 @@ dbg_stack_trace()
  *****************************************************************************
  */
 
+#define BLAS_FUNC_CONCAT(name,prefix) prefix ## name ## _64_
+#define BLAS_FUNC_EXPAND(name,prefix) BLAS_FUNC_CONCAT(name,prefix)
+
 #ifdef NO_APPEND_FORTRAN
-# define FNAME(x) scipy_##x
+# define FNAME(x) x
 #else
-# define FNAME(x) scipy_##x##_64_
+  #ifdef BLAS_SYMBOL_PREFIX
+    #define FNAME(x) BLAS_FUNC_EXPAND(x,BLAS_SYMBOL_PREFIX)
+  #else
+    #define FNAME(x) x##_64_
+  #endif
 #endif
 
 typedef struct { float r, i; } f2c_complex;
@@ -135,13 +151,13 @@ typedef blasint zheevd_type(char *jobz, char *uplo, blasint *n,
                         blasint *liwork,
                         blasint *info);
 
-typedef blasint dgelsd_type(int *m, blasint *n, blasint *nrhs,
+typedef blasint dgelsd_type(blasint *m, blasint *n, blasint *nrhs,
                         double a[], blasint *lda, double b[], blasint *ldb,
                         double s[], double *rcond, blasint *rank,
                         double work[], blasint *lwork, blasint iwork[],
                         blasint *info);
 
-typedef blasint zgelsd_type(int *m, blasint *n, blasint *nrhs,
+typedef blasint zgelsd_type(blasint *m, blasint *n, blasint *nrhs,
                         f2c_doublecomplex a[], blasint *lda,
                         f2c_doublecomplex b[], blasint *ldb,
                         double s[], double *rcond, blasint *rank,
@@ -149,46 +165,46 @@ typedef blasint zgelsd_type(int *m, blasint *n, blasint *nrhs,
                         double rwork[], blasint iwork[],
                         blasint *info);
 
-typedef blasint sgesv_type(int *n, blasint *nrhs,
+typedef blasint sgesv_type(blasint *n, blasint *nrhs,
                        float a[], blasint *lda,
                        blasint ipiv[],
                        float b[], blasint *ldb,
                        blasint *info);
 
-typedef blasint dgesv_type(int *n, blasint *nrhs,
+typedef blasint dgesv_type(blasint *n, blasint *nrhs,
                        double a[], blasint *lda,
                        blasint ipiv[],
                        double b[], blasint *ldb,
                        blasint *info);
 
-typedef blasint cgesv_type(int *n, blasint *nrhs,
+typedef blasint cgesv_type(blasint *n, blasint *nrhs,
                        f2c_complex a[], blasint *lda,
                        blasint ipiv[],
                        f2c_complex b[], blasint *ldb,
                        blasint *info);
 
-typedef blasint zgesv_type(int *n, blasint *nrhs,
+typedef blasint zgesv_type(blasint *n, blasint *nrhs,
                        f2c_doublecomplex a[], blasint *lda,
                        blasint ipiv[],
                        f2c_doublecomplex b[], blasint *ldb,
                        blasint *info);
 
-typedef blasint sgetrf_type(int *m, blasint *n,
+typedef blasint sgetrf_type(blasint *m, blasint *n,
                         float a[], blasint *lda,
                         blasint ipiv[],
                         blasint *info);
 
-typedef blasint dgetrf_type(int *m, blasint *n,
+typedef blasint dgetrf_type(blasint *m, blasint *n,
                         double a[], blasint *lda,
                         blasint ipiv[],
                         blasint *info);
 
-typedef blasint cgetrf_type(int *m, blasint *n,
+typedef blasint cgetrf_type(blasint *m, blasint *n,
                         f2c_complex a[], blasint *lda,
                         blasint ipiv[],
                         blasint *info);
 
-typedef blasint zgetrf_type(int *m, blasint *n,
+typedef blasint zgetrf_type(blasint *m, blasint *n,
                         f2c_doublecomplex a[], blasint *lda,
                         blasint ipiv[],
                         blasint *info);
@@ -290,57 +306,57 @@ typedef blasint zpotri_type(char *uplo, blasint *n,
                         f2c_doublecomplex a[], blasint *lda,
                         blasint *info);
 
-typedef blasint slaswp_type(int *n, float *a, blasint *lda,
+typedef blasint slaswp_type(blasint *n, float *a, blasint *lda,
                        blasint *k1, blasint *k2, blasint *ipiv, blasint *incx);
 
-typedef blasint dlaswp_type(int *n, double *a, blasint *lda,
+typedef blasint dlaswp_type(blasint *n, double *a, blasint *lda,
                        blasint *k1, blasint *k2, blasint *ipiv, blasint *incx);
 
-typedef blasint claswp_type(int *n, f2c_complex *a, blasint *lda,
+typedef blasint claswp_type(blasint *n, f2c_complex *a, blasint *lda,
                        blasint *k1, blasint *k2, blasint *ipiv, blasint *incx);
 
-typedef blasint zlaswp_type(int *n, f2c_doublecomplex *a, blasint *lda,
+typedef blasint zlaswp_type(blasint *n, f2c_doublecomplex *a, blasint *lda,
                        blasint *k1, blasint *k2, blasint *ipiv, blasint *incx);
 
 /* BLAS related prototypes as type */
-typedef blasint scopy_type(int *n,
+typedef blasint scopy_type(blasint *n,
                        float *sx, blasint *incx,
                        float *sy, blasint *incy);
 
-typedef blasint dcopy_type(int *n,
+typedef blasint dcopy_type(blasint *n,
                        double *sx, blasint *incx,
                        double *sy, blasint *incy);
 
-typedef blasint ccopy_type(int *n,
+typedef blasint ccopy_type(blasint *n,
                        f2c_complex *sx, blasint *incx,
                        f2c_complex *sy, blasint *incy);
 
-typedef blasint zcopy_type(int *n,
+typedef blasint zcopy_type(blasint *n,
                        f2c_doublecomplex *sx, blasint *incx,
                        f2c_doublecomplex *sy, blasint *incy);
 
 
-typedef blasint sswap_type(int *n,
+typedef blasint sswap_type(blasint *n,
                        float *sx, blasint *incx,
                        float *sy, blasint *incy);
 
-typedef blasint dswap_type(int *n,
+typedef blasint dswap_type(blasint *n,
                        double *sx, blasint *incx,
                        double *sy, blasint *incy);
 
-typedef blasint cswap_type(int *n,
+typedef blasint cswap_type(blasint *n,
                        f2c_complex *sx, blasint *incx,
                        f2c_complex *sy, blasint *incy);
 
-typedef blasint zswap_type(int *n,
+typedef blasint zswap_type(blasint *n,
                        f2c_doublecomplex *sx, blasint *incx,
                        f2c_doublecomplex *sy, blasint *incy);
 
-typedef float sdot_type(int *n,
+typedef float sdot_type(blasint *n,
                         float *sx, blasint *incx,
                         float *sy, blasint *incy);
 
-typedef double ddot_type(int *n,
+typedef double ddot_type(blasint *n,
                          double *sx, blasint *incx,
                          double *sy, blasint *incy);
 
@@ -424,78 +440,78 @@ typedef blasint zgemv_type(char *trans,
                        f2c_doublecomplex *beta,
                        f2c_doublecomplex *y, blasint *incy);
 
-typedef blasint sger_type(int *m, blasint *n,
+typedef blasint sger_type(blasint *m, blasint *n,
                       float *alpha,
                       float *x, blasint *incx,
                       float *y, blasint *incy,
                       float *a, blasint *lda);
 
-typedef blasint dger_type(int *m, blasint *n,
+typedef blasint dger_type(blasint *m, blasint *n,
                       double *alpha,
                       double *x, blasint *incx,
                       double *y, blasint *incy,
                       double *a, blasint *lda);
 
-typedef blasint cgeru_type(int *m, blasint *n,
+typedef blasint cgeru_type(blasint *m, blasint *n,
                        f2c_complex *alpha,
                        f2c_complex *x, blasint *incx,
                        f2c_complex *y, blasint *incy,
                        f2c_complex *a, blasint *lda);
 
-typedef blasint zgeru_type(int *m, blasint *n,
+typedef blasint zgeru_type(blasint *m, blasint *n,
                        f2c_doublecomplex *alpha,
                        f2c_doublecomplex *x, blasint *incx,
                        f2c_doublecomplex *y, blasint *incy,
                        f2c_doublecomplex *a, blasint *lda);
 
-typedef blasint cgerc_type(int *m, blasint *n,
+typedef blasint cgerc_type(blasint *m, blasint *n,
                        f2c_complex *alpha,
                        f2c_complex *x, blasint *incx,
                        f2c_complex *y, blasint *incy,
                        f2c_complex *a, blasint *lda);
 
-typedef blasint zgerc_type(int *m, blasint *n,
+typedef blasint zgerc_type(blasint *m, blasint *n,
                        f2c_doublecomplex *alpha,
                        f2c_doublecomplex *x, blasint *incx,
                        f2c_doublecomplex *y, blasint *incy,
                        f2c_doublecomplex *a, blasint *lda);
 
-typedef blasint sgeqrf_type(int *m, blasint *n,
+typedef blasint sgeqrf_type(blasint *m, blasint *n,
                         float *a,   blasint *lda,
                         float *tau, float *work,
                         blasint *lwork, blasint *info);
 
-typedef blasint dgeqrf_type(int *m, blasint *n,
+typedef blasint dgeqrf_type(blasint *m, blasint *n,
                         double *a,   blasint *lda,
                         double *tau, double *work,
                         blasint *lwork,  blasint *info);
 
-typedef blasint cgeqrf_type(int *m, blasint *n,
+typedef blasint cgeqrf_type(blasint *m, blasint *n,
                         f2c_complex *a,   blasint *lda,
                         f2c_complex *tau, f2c_complex *work,
                         blasint *lwork, blasint *info);
 
-typedef blasint zgeqrf_type(int *m, blasint *n,
+typedef blasint zgeqrf_type(blasint *m, blasint *n,
                         f2c_doublecomplex *a,   blasint *lda,
                         f2c_doublecomplex *tau, f2c_doublecomplex *work,
                         blasint *lwork, blasint *info);
 
-typedef blasint sorgqr_type(int *m, blasint *n, blasint *k,
+typedef blasint sorgqr_type(blasint *m, blasint *n, blasint *k,
                         float *a,   blasint *lda,
                         float *tau, float *work,
                         blasint *lwork, blasint *info);
 
-typedef blasint dorgqr_type(int *m, blasint *n, blasint *k,
+typedef blasint dorgqr_type(blasint *m, blasint *n, blasint *k,
                         double *a,   blasint *lda,
                         double *tau, double *work,
                         blasint *lwork,  blasint *info);
 
-typedef blasint cungqr_type(int *m, blasint *n, blasint *k,
+typedef blasint cungqr_type(blasint *m, blasint *n, blasint *k,
                         f2c_complex *a,   blasint *lda,
                         f2c_complex *tau, f2c_complex *work,
                         blasint *lwork, blasint *info);
 
-typedef blasint zungqr_type(int *m, blasint *n, blasint *k,
+typedef blasint zungqr_type(blasint *m, blasint *n, blasint *k,
                         f2c_doublecomplex *a,   blasint *lda,
                         f2c_doublecomplex *tau, f2c_doublecomplex *work,
                         blasint *lwork, blasint *info);
@@ -677,7 +693,7 @@ get_fp_invalid_and_clear(void)
 }
 
 static inline void
-set_fp_invalid_or_clear(int error_occurred)
+set_fp_invalid_or_clear(blasint error_occurred)
 {
     if (error_occurred) {
         npy_set_floatstatus_invalid();
@@ -1503,7 +1519,7 @@ triu_@TYPE@_conj(void *ptr, size_t n)
 */
 
 static inline void
-@dot@_inner1d_blas(@ret_typ@ *ret_val, int *dim, @ftyp@ *ip1, int *is1, @ftyp@ *ip2, int *is2)
+@dot@_inner1d_blas(@ret_typ@ *ret_val, blasint *dim, @ftyp@ *ip1, blasint *is1, @ftyp@ *ip2, blasint *is2)
 {
     *ret_val = BLAS(@dot@)(dim, ip1, is1, ip2, is2);
 }
@@ -1516,7 +1532,7 @@ static inline void
 */
 
 static inline void
-@dot@_inner1d_blas(@ftyp@ *ret_val, int *dim, @ftyp@ *ip1, int *is1, @ftyp@ *ip2, int *is2)
+@dot@_inner1d_blas(@ftyp@ *ret_val, blasint *dim, @ftyp@ *ip1, blasint *is1, @ftyp@ *ip2, blasint *is2)
 {
     BLAS(@dot@)(ret_val, dim, ip1, is1, ip2, is2);
 }
@@ -1567,7 +1583,7 @@ static inline void
 {
     const size_t sot = sizeof(@typ@);
     INIT_OUTER_LOOP_3
-    int dim = (int)dimensions[0];
+    blasint dim = (blasint)dimensions[0];
     /*
      * use blas if the stride is a multiple of datatype size in the inputs
      * it should be the common case
@@ -1576,7 +1592,7 @@ static inline void
         (0 == (steps[1] % sot))) {
         /* use blas */
 
-        int is1 = (int)(steps[0]/sot), is2 = (int)(steps[1]/sot);
+        blasint is1 = (blasint)(steps[0]/sot), is2 = (blasint)(steps[1]/sot);
         BEGIN_OUTER_LOOP_3
             @ftyp@ * ip1 = (@ftyp@*)args[0], *ip2 = (@ftyp@*)args[1];
             /*
@@ -1715,9 +1731,9 @@ dump_gemm_params(const char* name, const GEMM_PARAMS_t* params)
 {
     TRACE_TXT("\n%s\n"
               "%14s: %18p\n" "%14s: %18p\n" "%14s: %18p\n"
-              "%14s: %18d\n" "%14s: %18d\n" "%14s: %18d\n"
-              "%14s: %18d\n" "%14s: %18d\n" "%14s: %18d\n"
-              "%14s: %18d\n" "%14s: %18d\n" "%14s: %18d\n"
+              "%14s: %18"FMT"\n" "%14s: %18"FMT"\n" "%14s: %18"FMT"\n"
+              "%14s: %18"FMT"\n" "%14s: %18"FMT"\n" "%14s: %18"FMT"\n"
+              "%14s: %18"FMT"\n" "%14s: %18"FMT"\n" "%14s: %18"FMT"\n"
               "%14s: %15c'%c'\n" "%14s: %15c'%c'\n"
               "%14s: %18s\n",
               name,
@@ -2363,7 +2379,7 @@ init_syrk_params(SYRK_PARAMS_t *params,
 
     int a_transposed = 0;
 
-    size_t a_size = NULL;
+    size_t a_size = 0;
 
     /* maybe row major */
     if (a_row_stride == sot && /* dense rows */
@@ -3874,7 +3890,7 @@ static void
 
                 /* set d to diag(A) and set diag(A) to 1.0 */
                 memset(d, 0, n*n*sizeof(@ftyp@));
-                int i;
+                blasint i;
                 for (i=0; i < n; i++)
                 {
                     *d = *a;
@@ -3949,7 +3965,7 @@ typedef struct getrf_params_struct
     fortran_int N;
     fortran_int LDA;
     fortran_int A_size_bytes;
-    fortran_int IPIV_size_bytes
+    fortran_int IPIV_size_bytes;
 } GETRF_PARAMS_t;
 
 static inline int
@@ -5664,7 +5680,7 @@ static void
 */
 
 static inline void
-@ftyp@_@dot@(@ftyp@ *ret_val, int *N, void *X, int *INCX, void *Y, int *INCY)
+@ftyp@_@dot@(@ftyp@ *ret_val, blasint *N, void *X, blasint *INCX, void *Y, blasint *INCY)
 {
     *ret_val = @blas_dot@(N, X, INCX, Y, INCY);
 }
@@ -5678,7 +5694,7 @@ static inline void
 */
 
 static inline void
-@ftyp@_@dot@(@ftyp@ *ret_val, int *N, void *X, int *INCX, void *Y, int *INCY)
+@ftyp@_@dot@(@ftyp@ *ret_val, blasint *N, void *X, blasint *INCX, void *Y, blasint *INCY)
 {
     @blas_dot@(ret_val, N, X, INCX, Y, INCY);
 }
@@ -6247,7 +6263,7 @@ static void
         for (N_ = 0; N_ < dN; N_++) {
             OMP_SET_ID
 
-            int info;
+            blasint info;
 
             void *A = (void*)((char*)params.A + params.A_size_bytes * ID);
             void *B = (void*)((char*)params.B + params.B_size_bytes * ID);
