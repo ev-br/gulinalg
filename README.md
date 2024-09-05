@@ -1,4 +1,4 @@
-gulinalg
+gulinalg 
 ========
 
 Linear algebra functions as Generalized Ufuncs.
@@ -51,6 +51,15 @@ or use the standard `pytest` invocations.
 
 
 --------------------------------------------------------------------------------
+
+
+Below is the documentation for the older version of the package (v0.1.6).
+=========================================================================
+
+This version is using `numpy.distutils`, and is therefore limited to
+python versions `<= 3.11` and compatible NumPy versions.
+
+
 
 Notes about building
 ====================
