@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """
+Vendored from numpy.distutils verbatim,
+https://github.com/numpy/numpy/tree/main/numpy/distutils
+"""
+
+"""
 takes templated file .xxx.src and produces .xxx file  where .xxx is
 .i or .c or .h, using the following template rules
 
