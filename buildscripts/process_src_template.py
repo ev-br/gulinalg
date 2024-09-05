@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Vendored from numpy verbatim,
+https://github.com/numpy/numpy/tree/main/numpy/_build_utils
+"""
+
 import sys
 import os
 import argparse
